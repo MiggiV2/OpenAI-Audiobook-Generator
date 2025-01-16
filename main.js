@@ -1,6 +1,7 @@
 document.getElementById('generate-audiobook').addEventListener('click', generateAudiobook);
+document.getElementById('localSwitch').addEventListener('click', updateUiForLocalTTS);
 
-console.log("Version 0.9.1");
+console.log("Version 0.10.0-SNAPSHOT");
 
 async function mergeAudioBlobsAndDownload(audioBlobs) {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -18,7 +19,7 @@ async function mergeAudioBlobsAndDownload(audioBlobs) {
     const concatenatedWav = concatenateWAVBuffers(wavBuffers);
 
     // Trigger download of concatenated WAV file
-    triggerDownload(new Blob([concatenatedWav], {type: 'audio/wav'}), 'merged_audio.wav');
+    triggerDownload(new Blob([concatenatedWav], { type: 'audio/wav' }), 'merged_audio.wav');
 }
 
 function audioBufferToWAV(buffer) {
@@ -85,7 +86,7 @@ function generateAudiobook() {
     var segments = splitTextIntoSegments(text, 4000);
     var audioBlobs = new Array(segments.length);
     var progressBar = document.getElementById('progressbar1');
-	document.getElementById('error-indicator').style.display = 'none';
+    document.getElementById('error-indicator').style.display = 'none';
     progressBar.max = segments.length;
     progressBar.value = 0;
 
@@ -140,7 +141,7 @@ function splitTextIntoSegments(text, maxLength) {
 
 function callOpenAIAPI(segment, apiKey, callback) {
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "https://api.openai.com/v1/audio/speech", true);
+    xhr.open("POST", getTtsHost() + "audio/speech", true);
     xhr.setRequestHeader("Authorization", "Bearer " + apiKey);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.responseType = 'blob'; // Expect a binary response
@@ -151,7 +152,7 @@ function callOpenAIAPI(segment, apiKey, callback) {
             callback(audioBlob);
         } else {
             console.error("Error calling OpenAI API: " + xhr.statusText);
-			document.getElementById('error-indicator').style.display = 'block';
+            document.getElementById('error-indicator').style.display = 'block';
         }
     };
 
@@ -166,19 +167,82 @@ function callOpenAIAPI(segment, apiKey, callback) {
     xhr.send(data);
 }
 
+function getTtsHost() {
+    const localSwitch = document.getElementById("localSwitch");
+    if (localSwitch.checked) {
+        return "http://localhost:8880/v1/";
+    }
+    else {
+        return "https://api.openai.com/v1/"
+    }
+}
+
+// Function to add options to the select element
+function updateUiForLocalTTS() {
+    // Get the select element by its ID
+    const selectElement = document.getElementById("voice");
+    selectElement.innerHTML = '';
+
+    // Array of voice options with hardcoded values and texts
+    const kokoroOptions = [
+        { value: 'af', text: 'Default (Bella & Sarah)' },
+        { value: 'af_bella', text: 'Bella (af)' },
+        { value: 'af_sarah', text: 'Sarah (af)' },
+        { value: 'am_adam', text: 'Adam (am)' },
+        { value: 'am_michael', text: 'Michael (am)' },
+        { value: 'bf_emma', text: 'Emma (bf)' },
+        { value: 'bf_isabella', text: 'Isabella (bf)' },
+        { value: 'bm_george', text: 'George (bm)' },
+        { value: 'bm_lewis', text: 'Lewis (bm)' },
+        { value: 'af_nicole', text: 'Nicole (af)' },
+        { value: 'af_sky', text: 'Sky (af)' }
+    ];
+    // Array of options to be added
+    const openAiOptions = [
+        { value: 'onyx', text: 'Onyx', selected: true },
+        { value: 'nova', text: 'Nova' },
+        { value: 'alloy', text: 'Alloy' },
+        { value: 'echo', text: 'Echo' },
+        { value: 'fable', text: 'Fable' },
+        { value: 'shimmer', text: 'Shimmer' }
+    ];
+
+    const localSwitch = document.getElementById("localSwitch");
+    const options = localSwitch.checked ? kokoroOptions : openAiOptions;
+
+    // Loop through each option and add it to the select element
+    options.forEach((option, index) => {
+        const newOption = document.createElement("option");
+        newOption.value = option.value;
+        newOption.text = option.text;
+        if (index === 0) {
+            newOption.selected = true; // Select the first option
+        }
+        selectElement.appendChild(newOption);
+    });
+
+    // Disable Api Key input for local TTS
+    const apiKey = document.getElementById("api-key");
+    apiKey.disabled = localSwitch.checked;
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     var textInput = document.getElementById('text-input');
     var fileUpload = document.getElementById('file-upload');
     var costDisplay = document.getElementById('cost-estimate-display');
+    var localSwitch = document.getElementById("localSwitch");
 
     fileUpload.addEventListener('change', handleFileUpload);
     textInput.addEventListener('input', calculateCost);
 
     function calculateCost() {
-        var textLength = textInput.value.length;
-        var cost = (textLength / 1000) * 0.015;
-        costDisplay.textContent = 'Estimated Cost for Conversion: $' + cost.toFixed(2);
+        if (localSwitch.checked) {
+            costDisplay.textContent = 'Estimated Cost for Conversion: FREE';
+        } else {
+            var textLength = textInput.value.length;
+            var cost = (textLength / 1000) * 0.015;
+            costDisplay.textContent = 'Estimated Cost for Conversion: $' + cost.toFixed(2);
+        }
     }
 
     function handleFileUpload(event) {

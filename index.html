@@ -34,7 +34,6 @@
 
     <!-- Voice Section -->
     <div id="voice-section">
-        <label for="voice">Choose your voice</label>
         <select id="voice" class="form-select" aria-label="voice">
             <option selected value="onyx">Onyx</option>
             <option value="nova">Nova</option>
@@ -43,6 +42,10 @@
             <option value="fable">Fable</option>
             <option value="shimmer">Shimmer</option>
         </select>
+        <div class="custom-switch my-3">
+            <input type="checkbox" class="custom-control-input" id="localSwitch">          
+            <label class="custom-control-label" for="localSwitch">Use local Ai (like <a href="https://github.com/remsky/Kokoro-FastAPI">Kokoro-FastAPI</a> )</label>
+        </div>
         <p>
             If you want to hear examples of the voices check out the
             <a href="https://platform.openai.com/docs/guides/text-to-speech"
