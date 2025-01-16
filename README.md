@@ -20,6 +20,7 @@ This web-based application converts text into audio, focusing on creating audiob
 - **Progress Tracking:** Features progress bars for conversion and file creation.
 - **Download Option:** Users can download the generated audiobook in audio format.
 - **Privacy Focused:** No ads or user tracking, ensuring user privacy.
+- **Local TTS Support:** Use of local TTS API which are OpenAi compatible e.g. [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI)
 
 ## Technical Details
 
